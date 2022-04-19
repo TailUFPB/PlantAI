@@ -1,0 +1,6 @@
+name: AmbulancIA
+dependencies:
+  - python=3.8.5
+  - pip=21.1.2
+  - pip:
+    - Flask==2.0.3
