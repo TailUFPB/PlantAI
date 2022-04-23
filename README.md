@@ -10,3 +10,6 @@ docker build .
 ```
 docker-compose up
 ```
+## Pasta esp_pi
+- Para implementação do primeiro experimento foi utilizado o seguinte link:
+[Clique aqui]:http://suadica.com/dica.php?d=432&t=solicitacoes-http-post-no-microcontrolador-esp32
