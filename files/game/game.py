@@ -4,9 +4,10 @@ from enum import Enum
 from collections import namedtuple
 
 pygame.init()
-font = pygame.font.Font('OrelegaOne-Regular.ttf', 25)
+# font = pygame.font.Font('./OrelegaOne-Regular.ttf', 25)
+font = pygame.font.SysFont('Arial', 25)
 
-BLOCKSIZE = 20
+BLOCKSIZE = 30
 SNAKE_PADDING = 3
 
 Point = namedtuple('Point', ['x', 'y'])
@@ -27,15 +28,15 @@ class Direction(Enum):
     DOWN = 4
 
 class SnakeGame:
-    def __init__(self, w=640, h=480) -> None:
+    def __init__(self, w=600, h=600) -> None:
         self.w = w
         self.h = h
 
-        self.obstaculos = [Point(5, 5), Point(6, 4), Point(6, 5)]
+        self.walls = [Point(5, 5), Point(6, 4), Point(6, 5)]
 
         # Iniciar tela
         self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Jogo da cobrinha')
+        pygame.display.set_caption('AmbulancIA')
         self.clock = pygame.time.Clock()
 
         # Iniciar estado do jogo
@@ -140,7 +141,7 @@ class SnakeGame:
                 rect = pygame.Rect(x, y, BLOCKSIZE, BLOCKSIZE)
                 pygame.draw.rect(self.display, Color.GREY, rect, 1)
         
-        for obs in self.obstaculos:
+        for obs in self.walls:
             pygame.draw.rect(self.display, Color.LIME, pygame.Rect(obs.x*BLOCKSIZE, obs.y*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
 
         for unit in self.snake:
@@ -155,7 +156,7 @@ class SnakeGame:
 
 
 if __name__ == '__main__':
-    game = SnakeGame(720, 720)
+    game = SnakeGame()
 
     while True:
         game_over, score = game.play_step()
