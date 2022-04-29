@@ -1,12 +1,14 @@
 import pygame
 import random
+import numpy as np
 from enum import Enum
 from collections import namedtuple
 
 pygame.init()
-font = pygame.font.Font('OrelegaOne-Regular.ttf', 25)
+# font = pygame.font.Font('./OrelegaOne-Regular.ttf', 25)
+font = pygame.font.SysFont('Arial', 25)
 
-BLOCKSIZE = 20
+BLOCKSIZE = 30
 SNAKE_PADDING = 3
 
 Point = namedtuple('Point', ['x', 'y'])
@@ -27,15 +29,15 @@ class Direction(Enum):
     DOWN = 4
 
 class SnakeGame:
-    def __init__(self, w=640, h=480) -> None:
+    def __init__(self, w=600, h=600) -> None:
         self.w = w
         self.h = h
 
-        self.obstaculos = [Point(5, 5), Point(6, 4), Point(6, 5)]
+        self.walls = self._get_board()
 
         # Iniciar tela
         self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Jogo da cobrinha')
+        pygame.display.set_caption('AmbulancIA')
         self.clock = pygame.time.Clock()
 
         # Iniciar estado do jogo
@@ -98,7 +100,9 @@ class SnakeGame:
         y = random.randint(0, (self.h-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
 
         self.food = Point(x, y)
-        if self.food in self.snake:
+        forbidden_places = self._wall_points()
+
+        if self.food in forbidden_places:
             self._place_food()     
 
     def _move(self, direction):
@@ -140,9 +144,12 @@ class SnakeGame:
                 rect = pygame.Rect(x, y, BLOCKSIZE, BLOCKSIZE)
                 pygame.draw.rect(self.display, Color.GREY, rect, 1)
         
-        for obs in self.obstaculos:
-            pygame.draw.rect(self.display, Color.LIME, pygame.Rect(obs.x*BLOCKSIZE, obs.y*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
-
+        # Desenhando os obstaculos na tela
+        for i in range(self.walls.shape[0]):
+            for j in range(self.walls.shape[1]):
+                if self.walls[i, j] == 1:
+                    pygame.draw.rect(self.display, Color.LIME, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
+            
         for unit in self.snake:
             pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
             pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x+SNAKE_PADDING, unit.y+SNAKE_PADDING, BLOCKSIZE-(2*SNAKE_PADDING), BLOCKSIZE-(2*SNAKE_PADDING)))
@@ -152,10 +159,49 @@ class SnakeGame:
         score_text = font.render('Pontos: ' + str(self.score), True, Color.WHITE)
         self.display.blit(score_text, [5, 3])
         pygame.display.flip()
+    
+    def _wall_points(self):
+        point_list = list()
+
+        for i in range(self.walls.shape[0]):
+            for j in range(self.walls.shape[1]):
+                if self.walls[i, j] == 1:
+                    point_list.append(Point(j*BLOCKSIZE, i*BLOCKSIZE))
+        
+        return point_list
+
+    def _get_board(self):
+        boards = list()
+
+        boards.append(np.array([
+            [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,],
+            [1., 0., 0., 0., 0., 1., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1., 0., 1.,],
+            [1., 1., 1., 1., 0., 1., 1., 1., 0., 1., 1., 0., 1., 0., 0., 1., 0., 1., 0., 1.,],
+            [1., 0., 0., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 0., 1., 0., 1., 0., 1.,],
+            [1., 1., 0., 0., 0., 1., 1., 1., 0., 0., 0., 0., 1., 0., 0., 1., 0., 1., 0., 1.,],
+            [1., 0., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 0., 1., 1., 1., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1.,],
+            [1., 0., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 0., 1., 0., 0., 1., 0., 1.,],
+            [1., 0., 0., 1., 0., 1., 0., 0., 0., 1., 0., 0., 1., 0., 0., 0., 0., 1., 0., 1.,],
+            [1., 1., 1., 1., 0., 1., 0., 0., 0., 0., 0., 1., 1., 0., 1., 0., 0., 1., 0., 1.,],
+            [1., 0., 0., 0., 0., 1., 1., 1., 1., 1., 0., 1., 1., 0., 1., 0., 0., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 0., 0., 0., 0., 1., 0., 1., 1., 0., 1., 1., 1., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 1., 1., 0., 1., 0., 1., 1., 0., 0., 0., 0., 0., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 0., 1., 1., 1., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 0., 1., 0., 0., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 0., 0., 0., 0., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 1., 1., 1., 1., 1., 1., 0., 1.,],
+            [1., 0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1.,],
+            [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,]]))
+        
+        boards.append(boards[0].T)
+        
+        return boards[random.randint(0, len(boards)-1)]
 
 
 if __name__ == '__main__':
-    game = SnakeGame(720, 720)
+    game = SnakeGame()
 
     while True:
         game_over, score = game.play_step()
