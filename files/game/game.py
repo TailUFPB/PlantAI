@@ -3,6 +3,7 @@ import random
 import numpy as np
 from enum import Enum
 from collections import namedtuple
+from math import dist
 
 pygame.init()
 # font = pygame.font.Font('./OrelegaOne-Regular.ttf', 25)
@@ -10,6 +11,7 @@ font = pygame.font.SysFont('Arial', 25)
 
 BLOCKSIZE = 30
 SNAKE_PADDING = 3
+MINIMUN_DISTANCE = 100
 
 Point = namedtuple('Point', ['x', 'y'])
 
@@ -47,8 +49,10 @@ class SnakeGame:
         self.snake = [self.head, Point(self.head.x-BLOCKSIZE, self.head.y), Point(self.head.x-(2*BLOCKSIZE), self.head.y)]
 
         self.score = 0
-        self.food = None
-        self._place_food()
+        self.pacient = None
+        self.hospital = None
+        self._place_pacient()
+        self._place_hospital()
     
     def play_step(self):
         # 1 - Receber o input
@@ -81,10 +85,10 @@ class SnakeGame:
             return game_over, self.score
 
         # 4 - Checar se comeu
-        if self.head == self.food:
+        if self.head == self.pacient:
             self.score += 1
             self.speed += 1
-            self._place_food()
+            self._place_pacient()
         else:
             self.snake.pop()
 
@@ -95,15 +99,31 @@ class SnakeGame:
         # 6 - Retornar game over e score
         return game_over, self.score
 
-    def _place_food(self):
+    @staticmethod
+    def check_distance(origin, destination):
+        a = (origin.x, origin.y)
+        b = (destination.x, destination.y)
+        return dist(a, b)
+
+    def _place_pacient(self):
         x = random.randint(0, (self.w-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
         y = random.randint(0, (self.h-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
 
-        self.food = Point(x, y)
+        self.pacient = Point(x, y)
         forbidden_places = self._wall_points()
 
-        if self.food in forbidden_places:
-            self._place_food()     
+        if self.pacient in forbidden_places:
+            self._place_pacient()
+
+    def _place_hospital(self):
+        x = random.randint(0, (self.w-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
+        y = random.randint(0, (self.h-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
+
+        self.hospital = Point(x, y)
+        forbidden_places = self._wall_points()
+
+        if (self.hospital in forbidden_places) or (self.check_distance(self.pacient, self.hospital) < MINIMUN_DISTANCE):
+            self._place_hospital()
 
     def _move(self, direction):
         x = self.head.x
@@ -154,7 +174,8 @@ class SnakeGame:
             pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
             pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x+SNAKE_PADDING, unit.y+SNAKE_PADDING, BLOCKSIZE-(2*SNAKE_PADDING), BLOCKSIZE-(2*SNAKE_PADDING)))
 
-        pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.food.x, self.food.y, BLOCKSIZE, BLOCKSIZE))
+        pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
+        pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
 
         score_text = font.render('Pontos: ' + str(self.score), True, Color.WHITE)
         self.display.blit(score_text, [5, 3])
