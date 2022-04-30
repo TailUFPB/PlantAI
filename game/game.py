@@ -10,7 +10,7 @@ pygame.init()
 font = pygame.font.SysFont('Arial', 25)
 
 BLOCKSIZE = 30
-SNAKE_PADDING = 3
+AMBULANCE_PADDING = 3
 MINIMUN_DISTANCE = 100
 
 Point = namedtuple('Point', ['x', 'y'])
@@ -30,7 +30,7 @@ class Direction(Enum):
     UP = 3
     DOWN = 4
 
-class SnakeGame:
+class AmbulanceIA:
     def __init__(self, w=600, h=600) -> None:
         self.w = w
         self.h = h
@@ -46,11 +46,12 @@ class SnakeGame:
         self.direction = Direction.RIGHT
         self.speed = 8
         self.head = Point(self.w/2, self.h/2)
-        self.snake = [self.head, Point(self.head.x-BLOCKSIZE, self.head.y), Point(self.head.x-(2*BLOCKSIZE), self.head.y)]
+        self.ambulance = [self.head, Point(self.head.x-BLOCKSIZE, self.head.y), Point(self.head.x-(2*BLOCKSIZE), self.head.y)]
 
         self.score = 0
         self.pacient = None
         self.hospital = None
+        self.carrying = False
         self._place_pacient()
         self._place_hospital()
     
@@ -76,21 +77,22 @@ class SnakeGame:
 
         # 2 - Mover
         self._move(self.direction)
-        self.snake.insert(0, self.head)
+        self.ambulance.insert(0, self.head)
 
         # 3 - Checar se o jogo acabou
         game_over = False
-        if self._is_colision():
+        if self._has_arrived():
             game_over = True
             return game_over, self.score
 
-        # 4 - Checar se comeu
+        # 4 - Checar se pegou o paciente
         if self.head == self.pacient:
             self.score += 1
-            self.speed += 1
-            self._place_pacient()
+            self.speed += 5
+            self.carrying = True
+            # self._place_pacient()
         else:
-            self.snake.pop()
+            self.ambulance.pop()
 
         # 5 - Atualizar UI e clock
         self._update_ui()
@@ -150,8 +152,8 @@ class SnakeGame:
         
         self.head = Point(x, y)
 
-    def _is_colision(self):
-        if self.head in self.snake[1:]:
+    def _has_arrived(self):
+        if self.carrying and self.head == self.hospital:
             return True
         
         return False
@@ -170,11 +172,17 @@ class SnakeGame:
                 if self.walls[i, j] == 1:
                     pygame.draw.rect(self.display, Color.LIME, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
             
-        for unit in self.snake:
-            pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
-            pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x+SNAKE_PADDING, unit.y+SNAKE_PADDING, BLOCKSIZE-(2*SNAKE_PADDING), BLOCKSIZE-(2*SNAKE_PADDING)))
+        for unit in self.ambulance:
+            if self.carrying:
+                pygame.draw.rect(self.display, Color.RED, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
+                pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x+AMBULANCE_PADDING, unit.y+AMBULANCE_PADDING, BLOCKSIZE-(2*AMBULANCE_PADDING), BLOCKSIZE-(2*AMBULANCE_PADDING)))
+            else:
+                pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
+                pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x + AMBULANCE_PADDING, unit.y + AMBULANCE_PADDING, BLOCKSIZE - (2 * AMBULANCE_PADDING), BLOCKSIZE - (2 * AMBULANCE_PADDING)))
 
-        pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
+        # Desenhar o paciente quando não estiver carregando
+        if not self.carrying:
+            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
         pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
 
         score_text = font.render('Pontos: ' + str(self.score), True, Color.WHITE)
@@ -222,7 +230,7 @@ class SnakeGame:
 
 
 if __name__ == '__main__':
-    game = SnakeGame()
+    game = AmbulanceIA()
 
     while True:
         game_over, score = game.play_step()
