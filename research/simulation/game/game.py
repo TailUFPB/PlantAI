@@ -7,11 +7,11 @@ from math import dist
 
 pygame.init()
 # font = pygame.font.Font('./OrelegaOne-Regular.ttf', 25)
-font = pygame.font.SysFont('Arial', 25)
+font = pygame.font.SysFont('Arial', 25, bold=True)
 
 BLOCKSIZE = 30
 AMBULANCE_PADDING = 3
-MINIMUN_DISTANCE = 100
+MINIMUN_DISTANCE = 250
 
 Point = namedtuple('Point', ['x', 'y'])
 
@@ -30,7 +30,7 @@ class Direction(Enum):
     UP = 3
     DOWN = 4
 
-class AmbulanceIA:
+class AmbulancIA:
     def __init__(self, w=600, h=600) -> None:
         self.w = w
         self.h = h
@@ -126,6 +126,8 @@ class AmbulanceIA:
 
         if (self.hospital in forbidden_places) or (self.check_distance(self.pacient, self.hospital) < MINIMUN_DISTANCE):
             self._place_hospital()
+        
+        print(self.check_distance(self.pacient, self.hospital))
 
     def _move(self, direction):
         x = self.head.x
@@ -161,6 +163,7 @@ class AmbulanceIA:
     def _update_ui(self):
         self.display.fill(Color.BLACK)
 
+        # Desenhando o grid
         for x in range(0, self.w, BLOCKSIZE):
             for y in range(0, self.h, BLOCKSIZE):
                 rect = pygame.Rect(x, y, BLOCKSIZE, BLOCKSIZE)
@@ -185,8 +188,8 @@ class AmbulanceIA:
             pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
         pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
 
-        score_text = font.render('Pontos: ' + str(self.score), True, Color.WHITE)
-        self.display.blit(score_text, [5, 3])
+        score_text = font.render('Carregando paciente' if self.carrying else 'Buscando paciente', True, Color.WHITE)
+        self.display.blit(score_text, [5, 1])
         pygame.display.flip()
     
     def _wall_points(self):
@@ -230,7 +233,7 @@ class AmbulanceIA:
 
 
 if __name__ == '__main__':
-    game = AmbulanceIA()
+    game = AmbulancIA()
 
     while True:
         game_over, score = game.play_step()
