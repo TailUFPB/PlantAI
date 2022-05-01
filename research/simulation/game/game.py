@@ -36,6 +36,7 @@ class AmbulancIA:
         self.h = h
 
         self.walls = self._get_board()
+        self.obstacles_points = self._wall_points()
 
         # Iniciar tela
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -130,6 +131,7 @@ class AmbulancIA:
         print(self.check_distance(self.pacient, self.hospital))
 
     def _move(self, direction):
+        obstacle_flag = False
         x = self.head.x
         y = self.head.y
 
@@ -143,16 +145,21 @@ class AmbulancIA:
             y += BLOCKSIZE
         
         if x > self.w - BLOCKSIZE:
-            x = 0
+            x = self.head.x
         elif x < 0:
-            x = self.w - BLOCKSIZE
+            x = self.head.x
 
         if y > self.h - BLOCKSIZE:
-            y = 0
+            y = self.head.y
         elif y < 0:
-            y = self.h - BLOCKSIZE
-        
-        self.head = Point(x, y)
+            y = self.head.y
+
+        for obstacle_point in self.obstacles_points:
+            if Point(x, y) == obstacle_point:
+                obstacle_flag = True
+
+        if not obstacle_flag:
+            self.head = Point(x, y)
 
     def _has_arrived(self):
         if self.carrying and self.head == self.hospital:
