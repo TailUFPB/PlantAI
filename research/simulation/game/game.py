@@ -37,6 +37,7 @@ class AmbulancIA:
 
         self.walls = self._get_board()
         self.obstacles_points = self._wall_points()
+        self.need_move = False
 
         # Iniciar tela
         self.display = pygame.display.set_mode((self.w, self.h))
@@ -65,15 +66,26 @@ class AmbulancIA:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     if self.direction != Direction.DOWN:
+                        if self.direction == Direction.UP:
+                            self.need_move = True
                         self.direction = Direction.UP
+
                 elif event.key == pygame.K_DOWN:
                     if self.direction != Direction.UP:
+                        if self.direction == Direction.DOWN:
+                            self.need_move = True
                         self.direction = Direction.DOWN
+                        
                 elif event.key == pygame.K_LEFT:
                     if self.direction != Direction.RIGHT:
+                        if self.direction == Direction.LEFT:
+                            self.need_move = True
                         self.direction = Direction.LEFT
+                        
                 elif event.key == pygame.K_RIGHT:
                     if self.direction != Direction.LEFT:
+                        if self.direction == Direction.RIGHT:
+                            self.need_move = True
                         self.direction = Direction.RIGHT
 
         # 2 - Mover
@@ -158,8 +170,10 @@ class AmbulancIA:
             if Point(x, y) == obstacle_point:
                 obstacle_flag = True
 
-        if not obstacle_flag:
+        if not obstacle_flag and self.need_move:
             self.head = Point(x, y)
+        
+        self.need_move = False
 
     def _has_arrived(self):
         if self.carrying and self.head == self.hospital:
