@@ -35,6 +35,8 @@ class AmbulancIA:
         self.w = w
         self.h = h
 
+        self.dimension = self.w // BLOCKSIZE
+
         self.walls = self._get_board()
         self.obstacles_points = self._wall_points()
         self.need_move = False
@@ -46,9 +48,8 @@ class AmbulancIA:
 
         # Iniciar estado do jogo
         self.direction = Direction.RIGHT
-        self.speed = 8
-        self.head = Point(self.w/2, self.h/2)
-        self.ambulance = [self.head, Point(self.head.x-BLOCKSIZE, self.head.y), Point(self.head.x-(2*BLOCKSIZE), self.head.y)]
+        self.speed = 20
+        self.ambulance = self._place_ambulancIA()
 
         self.score = 0
         self.pacient = None
@@ -81,7 +82,7 @@ class AmbulancIA:
                         if self.direction == Direction.LEFT:
                             self.need_move = True
                         self.direction = Direction.LEFT
-                        
+
                 elif event.key == pygame.K_RIGHT:
                     if self.direction != Direction.LEFT:
                         if self.direction == Direction.RIGHT:
@@ -90,7 +91,6 @@ class AmbulancIA:
 
         # 2 - Mover
         self._move(self.direction)
-        self.ambulance.insert(0, self.head)
 
         # 3 - Checar se o jogo acabou
         game_over = False
@@ -99,13 +99,10 @@ class AmbulancIA:
             return game_over, self.score
 
         # 4 - Checar se pegou o paciente
-        if self.head == self.pacient:
-            self.score += 1
-            self.speed += 5
+        if self.ambulance == self.pacient:
+            self.score = 1
             self.carrying = True
             # self._place_pacient()
-        else:
-            self.ambulance.pop()
 
         # 5 - Atualizar UI e clock
         self._update_ui()
@@ -119,6 +116,23 @@ class AmbulancIA:
         a = (origin.x, origin.y)
         b = (destination.x, destination.y)
         return dist(a, b)
+
+    def _place_ambulancIA(self):
+        pos = Point(self.w/2, self.h/2)
+
+        while pos in self.obstacles_points:
+            offset = random.randint(0, 3)
+
+            if offset == 0:
+                pos = Point(pos.x + BLOCKSIZE, pos.y)
+            elif offset == 1:
+                pos = Point(pos.x - BLOCKSIZE, pos.y)
+            elif offset == 2:
+                pos = Point(pos.x, pos.y + BLOCKSIZE)
+            elif offset == 3:
+                pos = Point(pos.x, pos.y - BLOCKSIZE)
+        
+        return pos
 
     def _place_pacient(self):
         x = random.randint(0, (self.w-BLOCKSIZE) // BLOCKSIZE) * BLOCKSIZE
@@ -139,13 +153,11 @@ class AmbulancIA:
 
         if (self.hospital in forbidden_places) or (self.check_distance(self.pacient, self.hospital) < MINIMUN_DISTANCE):
             self._place_hospital()
-        
-        print(self.check_distance(self.pacient, self.hospital))
 
     def _move(self, direction):
         obstacle_flag = False
-        x = self.head.x
-        y = self.head.y
+        x = self.ambulance.x
+        y = self.ambulance.y
 
         if direction == Direction.RIGHT:
             x += BLOCKSIZE
@@ -157,26 +169,26 @@ class AmbulancIA:
             y += BLOCKSIZE
         
         if x > self.w - BLOCKSIZE:
-            x = self.head.x
+            x = self.ambulance.x
         elif x < 0:
-            x = self.head.x
+            x = self.ambulance.x
 
         if y > self.h - BLOCKSIZE:
-            y = self.head.y
+            y = self.ambulance.y
         elif y < 0:
-            y = self.head.y
+            y = self.ambulance.y
 
         for obstacle_point in self.obstacles_points:
             if Point(x, y) == obstacle_point:
                 obstacle_flag = True
 
         if not obstacle_flag and self.need_move:
-            self.head = Point(x, y)
+            self.ambulance = Point(x, y)
         
         self.need_move = False
 
     def _has_arrived(self):
-        if self.carrying and self.head == self.hospital:
+        if self.carrying and self.ambulance == self.hospital:
             return True
         
         return False
@@ -195,22 +207,21 @@ class AmbulancIA:
             for j in range(self.walls.shape[1]):
                 if self.walls[i, j] == 1:
                     pygame.draw.rect(self.display, Color.LIME, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
-            
-        for unit in self.ambulance:
-            if self.carrying:
-                pygame.draw.rect(self.display, Color.RED, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
-                pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x+AMBULANCE_PADDING, unit.y+AMBULANCE_PADDING, BLOCKSIZE-(2*AMBULANCE_PADDING), BLOCKSIZE-(2*AMBULANCE_PADDING)))
-            else:
-                pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(unit.x, unit.y, BLOCKSIZE, BLOCKSIZE))
-                pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(unit.x + AMBULANCE_PADDING, unit.y + AMBULANCE_PADDING, BLOCKSIZE - (2 * AMBULANCE_PADDING), BLOCKSIZE - (2 * AMBULANCE_PADDING)))
+
+        if self.carrying:
+            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE))
+            pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(self.ambulance.x+AMBULANCE_PADDING, self.ambulance.y+AMBULANCE_PADDING, BLOCKSIZE-(2*AMBULANCE_PADDING), BLOCKSIZE-(2*AMBULANCE_PADDING)))
+        else:
+            pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE))
+            pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + AMBULANCE_PADDING, BLOCKSIZE - (2 * AMBULANCE_PADDING), BLOCKSIZE - (2 * AMBULANCE_PADDING)))
 
         # Desenhar o paciente quando não estiver carregando
         if not self.carrying:
             pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
         pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
 
-        score_text = font.render('Carregando paciente' if self.carrying else 'Buscando paciente', True, Color.WHITE)
-        self.display.blit(score_text, [5, 1])
+        status_text = font.render('Carregando paciente' if self.carrying else 'Buscando paciente', True, Color.WHITE)
+        self.display.blit(status_text, [5, 1])
         pygame.display.flip()
     
     def _wall_points(self):
@@ -249,6 +260,8 @@ class AmbulancIA:
             [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,]]))
         
         boards.append(boards[0].T)
+
+        boards[1][10, 10] = 1
         
         return boards[random.randint(0, len(boards)-1)]
 
