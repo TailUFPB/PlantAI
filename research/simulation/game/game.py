@@ -9,6 +9,8 @@ pygame.init()
 # font = pygame.font.Font('./OrelegaOne-Regular.ttf', 25)
 font = pygame.font.SysFont('Arial', 25, bold=True)
 
+car_image = pygame.image.load('ambulance.png')
+
 BLOCKSIZE = 30
 AMBULANCE_PADDING = 3
 MINIMUN_DISTANCE = 250
@@ -23,6 +25,7 @@ class Color:
     BLACK = (0, 0, 0)
     GREY = (24, 24, 24)
     LIME = (0, 255, 0)
+    BROWN = (139, 69, 19)
 
 class Direction(Enum):
     RIGHT = 1
@@ -48,7 +51,7 @@ class AmbulancIA:
 
         # Iniciar estado do jogo
         self.direction = Direction.RIGHT
-        self.speed = 20
+        self.speed = 40
         self.ambulance = self._place_ambulancIA()
 
         self.score = 0
@@ -206,14 +209,21 @@ class AmbulancIA:
         for i in range(self.walls.shape[0]):
             for j in range(self.walls.shape[1]):
                 if self.walls[i, j] == 1:
-                    pygame.draw.rect(self.display, Color.LIME, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
+                    pygame.draw.rect(self.display, Color.BROWN, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
 
         if self.carrying:
-            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE))
-            pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(self.ambulance.x+AMBULANCE_PADDING, self.ambulance.y+AMBULANCE_PADDING, BLOCKSIZE-(2*AMBULANCE_PADDING), BLOCKSIZE-(2*AMBULANCE_PADDING)))
-        else:
-            pygame.draw.rect(self.display, Color.BLUE1, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE))
-            pygame.draw.rect(self.display, Color.BLUE2, pygame.Rect(self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + AMBULANCE_PADDING, BLOCKSIZE - (2 * AMBULANCE_PADDING), BLOCKSIZE - (2 * AMBULANCE_PADDING)))
+            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE), AMBULANCE_PADDING)
+        
+        if self.direction == Direction.LEFT:
+            image = car_image
+        elif self.direction == Direction.DOWN:
+            image = pygame.transform.rotate(car_image, 90)
+        elif self.direction == Direction.RIGHT:
+            image = pygame.transform.rotate(car_image, 180)
+        elif self.direction == Direction.UP:
+            image = pygame.transform.rotate(car_image, 270)
+
+        self.display.blit(image, (self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + (2 *AMBULANCE_PADDING)))
 
         # Desenhar o paciente quando não estiver carregando
         if not self.carrying:
