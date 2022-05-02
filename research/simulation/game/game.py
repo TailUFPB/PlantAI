@@ -212,7 +212,7 @@ class AmbulancIA:
                     pygame.draw.rect(self.display, Color.BROWN, pygame.Rect(j*BLOCKSIZE, i*BLOCKSIZE, BLOCKSIZE, BLOCKSIZE))
 
         if self.carrying:
-            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE), AMBULANCE_PADDING)
+            pygame.draw.rect(self.display, Color.LIME, pygame.Rect(self.ambulance.x, self.ambulance.y, BLOCKSIZE, BLOCKSIZE), AMBULANCE_PADDING)
         
         if self.direction == Direction.LEFT:
             image = car_image
@@ -223,12 +223,12 @@ class AmbulancIA:
         elif self.direction == Direction.UP:
             image = pygame.transform.rotate(car_image, 270)
 
-        self.display.blit(image, (self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + (2 *AMBULANCE_PADDING)))
-
         # Desenhar o paciente quando não estiver carregando
         if not self.carrying:
-            pygame.draw.rect(self.display, Color.RED, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
+            pygame.draw.rect(self.display, Color.LIME, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
         pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
+        
+        self.display.blit(image, (self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + (2 *AMBULANCE_PADDING)))
 
         status_text = font.render('Carregando paciente' if self.carrying else 'Buscando paciente', True, Color.WHITE)
         self.display.blit(status_text, [5, 1])
