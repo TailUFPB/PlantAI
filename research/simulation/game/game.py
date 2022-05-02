@@ -227,8 +227,8 @@ class AmbulancIA:
         if not self.carrying:
             pygame.draw.rect(self.display, Color.LIME, pygame.Rect(self.pacient.x, self.pacient.y, BLOCKSIZE, BLOCKSIZE))
         pygame.draw.rect(self.display, Color.WHITE, pygame.Rect(self.hospital.x, self.hospital.y, BLOCKSIZE, BLOCKSIZE))
-        
-        self.display.blit(image, (self.ambulance.x + AMBULANCE_PADDING, self.ambulance.y + (2 *AMBULANCE_PADDING)))
+
+        self.display.blit(image, (self.ambulance.x, self.ambulance.y))
 
         status_text = font.render('Carregando paciente' if self.carrying else 'Buscando paciente', True, Color.WHITE)
         self.display.blit(status_text, [5, 1])
