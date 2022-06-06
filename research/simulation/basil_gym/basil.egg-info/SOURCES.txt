@@ -1,0 +1,6 @@
+setup.py
+basil.egg-info/PKG-INFO
+basil.egg-info/SOURCES.txt
+basil.egg-info/dependency_links.txt
+basil.egg-info/requires.txt
+basil.egg-info/top_level.txt
