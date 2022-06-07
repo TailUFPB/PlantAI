@@ -1,4 +1,4 @@
-# AmbulancIA
+# PlantAI
 
 ## Running the API
 - Make sure that you have docker and docker-compose installed in your enviroment
