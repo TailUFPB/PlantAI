@@ -4,5 +4,5 @@ import gym
 register(
     id='BasilEnv-v0',
     entry_point='basil.envs:BasilEnv',
-    max_episodes_steps=2000
+    max_episode_steps=2000
 )

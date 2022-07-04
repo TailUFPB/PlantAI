@@ -2,36 +2,48 @@ import gym
 from gym import spaces, logger
 import numpy as np
 
-# Temperatura, umidade e luz
+# Temperatura, umidade
 
 # Temp:    21 até 27
 # Umidade: 60 até 65
-# Falta luz
 
 class BasilEnv(gym.Env):
     def __init__(self) -> None:
         self.observation_space = spaces.Box(np.array([21., 60.]), np.array([27., 65.]), dtype=np.float64)
-        # [+/-temp +/-umid]
-        self.action_space = spaces.MultiBinary(2)
+        # [(+temp), (+umid), (+temp e umid), (vazio)]
+        self.action_space = spaces.Discrete(4)
         self.state = self.observation_space.sample()
         self.steps_beyond_done = None
 
     def reset(self):
+        self.step_number = 0
         self.state = self.observation_space.sample()
         self.steps_beyond_done = None
         return self.state
     
-    def step(self, action):
+    def step(self, action, reward=0):
         '''
-        Action = [+/-temp +/-umid]
-            0: negative action related to the metric
-            1: positive action related to the metric
+        Action = [0(+temp), 1(+umid), 2(+temp,+umid), 3(vazio)]
         '''
-        temp_act = action[0]
-        humid_act = action[1]
 
-        self.state[0] += 0.5 if temp_act == 1 else -0.5
-        self.state[1] += 2 if humid_act == 1 else -2
+        self.step_number += 1
+        
+        if action == 0:
+            self.state[0] += 0.5
+            reward -= 0.1
+
+        if action == 1:
+            self.state[1] += 0.5
+            reward -= 0.1
+
+        if action == 2:
+            self.state[0] += 0.5
+            self.state[1] += 0.5
+            reward -= 0.2
+
+        if action == 3:
+            pass
+        
 
         temperature, humidity = self.state
 
@@ -42,12 +54,15 @@ class BasilEnv(gym.Env):
             or humidity > 65
         )
 
+        if self.step_number >= 10000:
+            done = True
+
         if not done:
-            reward = 1.0
+            reward += 0.5
         elif self.steps_beyond_done is None:
             # Pole just fell!
             self.steps_beyond_done = 0
-            reward = 1.0
+            reward += 0.5
         else:
             if self.steps_beyond_done == 0:
                 logger.warn(
@@ -66,7 +81,4 @@ class BasilEnv(gym.Env):
         print(f'Humidity: {self.state[1]:.2f}%')
 
 env = BasilEnv()
-env.render()
-print(env.step([0, 0]))
-print(env.step([0, 0]))
 env.render()
