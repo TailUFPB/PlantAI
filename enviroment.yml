@@ -4,3 +4,4 @@ dependencies:
   - pip=21.1.2
   - pip:
     - Flask==2.0.3
+    - numpy==1.23.0

@@ -1,9 +1,9 @@
-from numpy.core.fromnumeric import argmax
+from numpy import argmax
 import pickle
 
 class Agent:
     def __init__(self):
-        self.model = self.load_model("'files/model.pkl'")
+        self.model = self.load_model("files/model.pkl")
 
     def load_model(self, path):
         with open(path, 'rb') as model:

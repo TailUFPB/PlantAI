@@ -1,6 +1,5 @@
-from statistics import mode
 from flask import Flask, jsonify, request, Response, abort
-from src.utils import Agent
+from src.agent import Agent
 
 app = Flask(__name__)
 
