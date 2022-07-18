@@ -54,17 +54,36 @@ HTTPClient http;
 
     JsonArray data = doc.createNestedArray("state");
     data.add(26);
-    data.add(56);
+    data.add(65);
      
     String requestBody;
     serializeJson(doc, requestBody);
      
     int httpResponseCode = http.POST(requestBody);
       if (httpResponseCode>0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        String payload = http.getString();
-        Serial.println(payload);
+        //Serial.print("HTTP Response code: ");
+        //Serial.println(httpResponseCode);
+        deserializeJson(doc, http.getStream());
+        int result = (int)doc["action"].as<long>();
+       // String payload = http.getString();
+        switch (result) {
+          case 0:    
+            Serial.println("ligar lâmpada");
+            break;
+          case 1:
+            Serial.println("ligar bomba de água");
+            break;
+          case 2:
+            Serial.println("ligar lâmpada e bomba de água");
+            break;
+          case 3:
+            Serial.println("fazer nada");
+            break;
+          default:
+             Serial.println("Opção Inválida");
+             break;
+}
+        
       }
       else {
         Serial.print("Error code: ");
